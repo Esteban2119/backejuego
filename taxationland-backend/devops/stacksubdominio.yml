@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  juegos2:
+    image: dido:1
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    networks:
+      - juego2_net
+      - traefik-public
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.juegos2.entrypoints=http"
+        - "traefik.http.routers.juegos2.rule=Host(`juegos2.byronrm.com`)"
+        - "traefik.http.middlewares.juegos2-https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.juegos2.middlewares=juegos2-https-redirect"
+        - "traefik.http.routers.juegos2-secure.entrypoints=https"
+        - "traefik.http.routers.juegos2-secure.rule=Host(`juegos2.byronrm.com`)"
+        - "traefik.http.routers.juegos2-secure.tls=true"
+        - "traefik.http.routers.juegos2-secure.tls.certresolver=http"
+        - "traefik.http.routers.juegos2-secure.service=juegos2"
+        - "traefik.http.services.juegos2.loadbalancer.server.port=8080"
+        - "traefik.docker.network=traefik-public"
+  db_prueba:
+    image: mysql:8.3
+    environment:
+      - TZ=America/Guayaquil
+      - MYSQL_DATABASE=security1
+      - MYSQL_ROOT_PASSWORD=12345
+      - MYSQL_USER=root
+      - PGDATA=/var/lib/mysql/data/pgdata
+    volumes:
+      - pg_prodv:/var/lib/mysql/data/pgdata
+    networks:
+      - juego2_net
+
+volumes:
+  pg_prodv:
+    external: true
+
+networks:
+  juego2_net:
+    external: true
+  traefik-public:
+    external: true
